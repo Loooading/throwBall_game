@@ -2,6 +2,7 @@
  * Created by liuhujun on 14-8-18.
  */
 
+
 var GameLayer = cc.Layer.extend({
     ball:null,
     moveVect:null,
@@ -12,21 +13,16 @@ var GameLayer = cc.Layer.extend({
     },
     init : function(){
         var winsize = cc.winSize;
-        var centPos = cc.p(winsize.width/2, winsize.height);
+        var ballStartPos = cc.p(winsize.width/2, winsize.height);
         this.moveVect = cp.v(0,0);
         this.space = new cp.Space();
         this.initPhysics();
+        this.anchor(0, 0);
+        var sprite =  this.createPhysicsCircleSprite( ballStartPos );
 
-        //this.createPhysicsSprite(centPos);
-        var sprite =  this.createPhysicsCircleSprite( centPos );
-//        var spriteBox1 = this.createPhysicsPolySprite( centPos );
-//        var spriteBox1 = this.createPhysicsPolySprite( centPos );
-//        var spriteBox2 = this.createPhysicsPolySprite( centPos );
-//
-          this.addChild( sprite, 100, 1 );
-//        this.addChild( spriteBox1, 100, 2);
-//        this.addChild( spriteBox2, 100, 3);
-//        cp.PinJoint(spriteBox1, spriteBox2, spriteBox1.getAnchorPoint(), spriteBox2.getAnchorPoint());
+        this.addChild( sprite, 100, 1 );
+
+        var
 
         this.setupDebugNode();
         cc.eventManager.addListener({
@@ -90,37 +86,14 @@ var GameLayer = cc.Layer.extend({
         var winSize = cc.director.getWinSize();
 
         // Walls
-        var walls = [ new cp.SegmentShape( staticBody, cp.v(0,0), cp.v(winSize.width,0), 0 ),                // bottom
-            new cp.SegmentShape( staticBody, cp.v(0,winSize.height), cp.v(winSize.width,winSize.height), 0),    // top
-            new cp.SegmentShape( staticBody, cp.v(0,0), cp.v(0,winSize.height), 0),                // left
-            new cp.SegmentShape( staticBody, cp.v(winSize.width,0), cp.v(winSize.width,winSize.height), 0)    // right
+
+
+        var bays = [ new cp.SegmentShape( staticBody, cp.v(0,200), cp.v(300,200), 10),                // bottom
+            new cp.SegmentShape( staticBody, cp.v(200,480), cp.v(480,480), 10)// right
         ];
 
-        for( var i=0; i < walls.length; i++ ) {
-            var shape = walls[i];
-            shape.setElasticity(1);
-            shape.setFriction(1);
-            space.addStaticShape( shape );
-        }
-
-        var bucket = [ new cp.SegmentShape( staticBody, cp.v(200,0), cp.v(300,0), 0 ),                // bottom
-                       new cp.SegmentShape( staticBody, cp.v(200,0), cp.v(180,100), 0),                // left
-                       new cp.SegmentShape( staticBody, cp.v(300,0), cp.v(320,100), 0)    // right
-        ];
-
-        for( var i=0; i < bucket.length; i++ ) {
-            var shape = bucket[i];
-            shape.setElasticity(1);
-            shape.setFriction(1);
-            space.addStaticShape( shape );
-        }
-
-        var bay = [ new cp.SegmentShape( staticBody, cp.v(0,200), cp.v(300,200), 0 ),                // bottom
-            new cp.SegmentShape( staticBody, cp.v(200,480), cp.v(480,480), 0)// right
-        ];
-
-        for( var i=0; i < bay.length; i++ ) {
-            var shape = bay[i];
+        for( var i=0; i < bays.length; i++ ) {
+            var shape = bays[i];
             shape.setElasticity(1);
             shape.setFriction(1);
             space.addStaticShape( shape );
@@ -131,9 +104,8 @@ var GameLayer = cc.Layer.extend({
 
     createPhysicsCircleSprite:function( pos ) {
 
-        var radius = 50;
+        var radius = 20;
         var mass = 1;
-
         var body = new cp.Body(mass, cp.momentForCircle(mass, 0, radius,cp.v(0, 0)));
         body.setPos( pos );
         this.space.addBody( body );
@@ -141,25 +113,6 @@ var GameLayer = cc.Layer.extend({
         shape.setElasticity( 1 );//弹性
         shape.setFriction( 50 );//摩擦力
 
-
-        this.space.addShape( shape );
-
-        var sprite = cc.PhysicsSprite.create(res.CloseNormal_png);
-        sprite.setBody( body );
-        return sprite;
-    },
-
-    createPhysicsPolySprite:function( pos ) {
-
-        //var radius = 20;
-        var mass = 2;
-
-        var body = new cp.Body(mass, cp.momentForBox(mass, 50, 200));
-        body.setPos( pos );
-        this.space.addBody( body );
-        var shape = new cp.BoxShape(body, 50, 200); //new cp.BoxShape( body, 48, 108);
-        shape.setElasticity( 0.5 );
-        shape.setFriction( 0.1 );
 
         this.space.addShape( shape );
 
@@ -178,6 +131,20 @@ var GameLayer = cc.Layer.extend({
 });
 
 var GameScene = cc.Scene.extend({
+    space : null,
+    initPhysics:function() {
+    //1. new space object
+    this.space = new cp.Space();
+    //2. setup the  Gravity
+    this.space.gravity = cp.v(0, -350);
+
+    // 3. set up Walls
+    var wallBottom = new cp.SegmentShape(this.space.staticBody,
+        cp.v(0, g_groundHight),// start point
+        cp.v(4294967295, g_groundHight),// MAX INT:4294967295
+        0);// thickness of wall
+    this.space.addStaticShape(wallBottom);
+},
     onEnter:function () {
         this._super();
         var layer = new GameLayer();
