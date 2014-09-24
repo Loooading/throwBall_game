@@ -12,7 +12,6 @@
 
     "jsList" : [
         "src/resource.js",
-        "src/app.js",
         "src/BackgroundLayer.js",
         "src/BallSpriteLayer.js",
         "src/PlayScene.js",
